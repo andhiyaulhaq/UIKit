@@ -12,12 +12,13 @@
 #include "ui/primitives/button.h"
 #include "ui/tokens/theme.h"
 
+const ui::ButtonVariant Primary = ui::ButtonVariant::Primary;
+const ui::ButtonVariant Secondary = ui::ButtonVariant::Secondary;
+
 void ShowButtons() {
-  ui::Button("Primary",
-             ui::theme::GetButtonStyle(ui::theme::ButtonVariant::Primary));
+  ui::Button("Primary", Primary);
   ImGui::SameLine();
-  ui::Button("Secondary",
-             ui::theme::GetButtonStyle(ui::theme::ButtonVariant::Secondary));
+  ui::Button("Secondary", Secondary);
 }
 
 static void glfw_error_callback(int error, const char *description) {
