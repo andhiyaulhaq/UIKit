@@ -19,7 +19,9 @@ namespace theme {
 ButtonStyle GetButtonStyle(ButtonVariant variant);
 } // namespace theme
 
-bool Button(const char *label, const ButtonStyle &style);
 bool Button(const char *label, ButtonVariant variant);
 
 } // namespace ui
+
+const ui::ButtonVariant Primary = ui::ButtonVariant::Primary;
+const ui::ButtonVariant Secondary = ui::ButtonVariant::Secondary;
