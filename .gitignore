@@ -1,0 +1,64 @@
+# ---------------------
+# 1. Build & Output
+# ---------------------
+# Ignore the build folder where CMake generates files
+build/
+out/
+bin/
+
+# Compiled Object files
+*.o
+*.obj
+
+# Compiled Libraries
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+
+# Executables
+*.exe
+*.out
+*.app
+
+# ---------------------
+# 2. CMake Artifacts
+# ---------------------
+# These are generated if you accidentally run cmake in the root
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+*.cmake
+!CMakeLists.txt
+
+# ---------------------
+# 3. IDE & Editor Files
+# ---------------------
+# VS Code (Ignore this because your configs have absolute paths like "C:/Users/...")
+.vscode/
+*.code-workspace
+
+# Visual Studio (If you open the folder with VS2022)
+.vs/
+*.user
+*.suo
+*.sln
+*.vcxproj
+*.vcxproj.filters
+
+# Mac / Windows system files
+.DS_Store
+Thumbs.db
+
+# ---------------------
+# 4. ImGui Specific
+# ---------------------
+# ImGui generates this file to save window positions/sizes.
+# You generally don't want to commit your personal window layout.
+imgui.ini
+
+.cache/
