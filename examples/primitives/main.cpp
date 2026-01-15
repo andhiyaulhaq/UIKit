@@ -250,13 +250,34 @@ private:
     ImGui::Spacing();
 
     // --- ACTIONS ---
-    // Right-align the button
-    float btnWidth = 120.0f;
-    ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth -
-                         ImGui::GetStyle().ItemSpacing.x);
+    const char *btnLabel = "Create Account";
 
-    if (ui::Button("Create Account", ImVec2(btnWidth, 40))) {
-      // Simple Logic: Update the output message
+    // 1. Calculate a "comfortable" width dynamically
+    // We use the text size plus standard FramePadding (multiplied by 4 for a
+    // nice wide look)
+    ImVec2 textSize = ImGui::CalcTextSize(btnLabel);
+    ImGuiStyle &style = ImGui::GetStyle();
+
+    // Using style.FramePadding.x ensures consistency with other buttons.
+    // * 40.0f gives it "breathing room" on both sides.
+    float dynamicBtnWidth = textSize.x + (style.FramePadding.x * 40.0f);
+
+    // 2. Calculate proper Right Alignment
+    // GetContentRegionAvail().x gives us the total width available on this
+    // line. We simply add it to the current cursor X, then subtract our button
+    // width.
+    float alignX = ImGui::GetCursorPosX() + ImGui::GetContentRegionAvail().x -
+                   dynamicBtnWidth;
+
+    // 3. Apply position
+    if (alignX > ImGui::GetCursorPosX()) {
+      ImGui::SetCursorPosX(alignX);
+    }
+
+    // 4. Draw Button
+    // We pass the exact calculated width so the button renders exactly where we
+    // planned
+    if (ui::Button(btnLabel, ImVec2(dynamicBtnWidth, 0))) {
       vm.outputMessage = "Created user: " + vm.username;
     }
 
