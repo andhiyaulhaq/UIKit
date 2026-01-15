@@ -135,32 +135,43 @@ private:
   }
 
   // This contains the logic from the original ShowButtons() function
+  // This contains the logic from the original ShowButtons() function
   void renderUI() {
-    ImGui::Begin("Minimal Example");
+    // 1. Setup the window to fill the entire viewport
+    const ImGuiViewport *viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->Pos);
+    ImGui::SetNextWindowSize(viewport->Size);
+
+    // 2. Add flags to remove decorations (title bar, resize handle) and
+    // movement
+    ImGuiWindowFlags window_flags =
+        ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings |
+        ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+    // Optional: Remove window rounding to ensure it fits the corners perfectly
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+
+    // 3. Begin the window with the flags
+    ImGui::Begin("Minimal Example", nullptr, window_flags);
+
+    // --- Content (Buttons) ---
 
     // 1. No extra args
-    // Matches Master function. Uses defaults: Primary, Medium, {0,0}
     ui::Button("Save");
 
     // 2. Passing ImVec2
-    // Matches the Inline Overload. Redirects to Master with: Primary, Medium,
-    // {150,40}
     ui::Button("Submit", ImVec2(150, 40));
     ui::Button("Full Width", ImVec2(-1.0f, 40));
 
     // 3. Passing Variant
-    // Matches Master function. Uses defaults for rest: Variant, Medium, {0,0}
     ui::Button("Primary", Primary);
     ImGui::SameLine();
     ui::Button("Secondary", Secondary);
 
     // Get the available width of the window/container
     float avail_width = ImGui::GetContentRegionAvail().x;
-
-    // Get the standard spacing ImGui uses between items (usually 8px)
     float spacing = ImGui::GetStyle().ItemSpacing.x;
-
-    // Calculate half width: (Total - Spacing) / 2
     float half_width = (avail_width - spacing) / 2.0f;
 
     ui::Button("Test1", ImVec2(half_width, 30));
@@ -168,10 +179,12 @@ private:
     ui::Button("Test2", ImVec2(half_width, 30));
 
     // 4. Passing Variant + Size Category
-    // Matches Master function.
     ui::Button("Delete", Danger, Small);
 
     ImGui::End();
+
+    // Pop the style var we pushed earlier
+    ImGui::PopStyleVar();
   }
 };
 
