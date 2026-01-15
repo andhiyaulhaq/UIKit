@@ -16,8 +16,14 @@ static bool DrawButton(const char *label, const ButtonStyle &s,
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, s.radius);
   ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, s.padding);
 
+  // 1. Draw the button
   // Pass the override_size (which might be 0,0 or 150,40) to ImGui
   bool clicked = ImGui::Button(label, override_size);
+
+  // 2. Check if the button we just drew is hovered
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+  }
 
   ImGui::PopStyleVar(2);
   ImGui::PopStyleColor(4);
