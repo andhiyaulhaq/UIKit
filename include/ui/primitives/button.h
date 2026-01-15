@@ -42,12 +42,3 @@ inline bool Button(const char *label, ImVec2 override_size) {
 }
 
 } // namespace ui
-
-// Global shortcuts
-const ui::ButtonVariant Primary = ui::ButtonVariant::Primary;
-const ui::ButtonVariant Secondary = ui::ButtonVariant::Secondary;
-const ui::ButtonVariant Danger = ui::ButtonVariant::Danger;
-const ui::ButtonVariant Success = ui::ButtonVariant::Success;
-const ui::ButtonSize Small = ui::ButtonSize::Small;
-const ui::ButtonSize Medium = ui::ButtonSize::Medium;
-const ui::ButtonSize Large = ui::ButtonSize::Large;

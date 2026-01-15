@@ -216,9 +216,9 @@ private:
                ImVec2(-1.0f, 40)); // -1.0f width means "Span available width"
 
     // Example 3: Themed Buttons (Primary/Secondary)
-    ui::Button("Primary", Primary);
+    ui::Button("Primary", ui::ButtonVariant::Primary);
     ImGui::SameLine(); // Places the next element on the same horizontal line
-    ui::Button("Secondary", Secondary);
+    ui::Button("Secondary", ui::ButtonVariant::Secondary);
 
     // Example 4: Responsive Grid Calculation
     float avail_width = ImGui::GetContentRegionAvail().x;
@@ -231,7 +231,7 @@ private:
     ui::Button("Test2", ImVec2(half_width, 30));
 
     // Example 5: Variant + Size
-    ui::Button("Delete", Danger, Small);
+    ui::Button("Delete", ui::ButtonVariant::Danger, ui::ButtonSize::Small);
 
     // --- TITLE ---
     ImGui::SetWindowFontScale(1.5f);
