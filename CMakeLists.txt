@@ -56,6 +56,7 @@ target_link_libraries(imgui PUBLIC
 # =========================
 add_library(ui_kit
     include/ui/primitives/button.cpp
+		include/ui/primitives/input.cpp
     include/ui/tokens/theme.cpp
     # later:
     # include/ui/patterns/toolbar.cpp

@@ -18,6 +18,7 @@
 
 // Custom UI Headers (Your component library)
 #include "ui/primitives/button.h"
+#include "ui/primitives/input.h"
 #include "ui/tokens/theme.h"
 
 // =====================================================
@@ -27,6 +28,9 @@ struct KitViewModel {
   // This struct is intended to hold the application state (variables, flags,
   // data). Keeping state separate from the rendering logic (KitApp) follows the
   // MVVM pattern.
+  std::string username;
+  std::string email;
+  std::string outputMessage;
 };
 
 // =====================================================
@@ -228,6 +232,40 @@ private:
 
     // Example 5: Variant + Size
     ui::Button("Delete", Danger, Small);
+
+    // --- TITLE ---
+    ImGui::SetWindowFontScale(1.5f);
+    ImGui::Text("User Registration");
+    ImGui::SetWindowFontScale(1.0f);
+    ImGui::Spacing();
+    ImGui::Separator();
+    ImGui::Spacing();
+
+    // --- INPUTS ---
+    // Using our new C++ friendly wrapper
+    ui::Input("##User", vm.username, "Enter Username...");
+    ImGui::Spacing();
+
+    ui::Input("##Email", vm.email, "Enter Email Address...");
+    ImGui::Spacing();
+
+    // --- ACTIONS ---
+    // Right-align the button
+    float btnWidth = 120.0f;
+    ImGui::SetCursorPosX(ImGui::GetWindowWidth() - btnWidth -
+                         ImGui::GetStyle().ItemSpacing.x);
+
+    if (ui::Button("Create Account", ImVec2(btnWidth, 40))) {
+      // Simple Logic: Update the output message
+      vm.outputMessage = "Created user: " + vm.username;
+    }
+
+    // --- FEEDBACK ---
+    if (!vm.outputMessage.empty()) {
+      ImGui::Spacing();
+      ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "%s",
+                         vm.outputMessage.c_str());
+    }
 
     ImGui::End();
 
