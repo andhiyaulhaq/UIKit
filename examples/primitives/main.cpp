@@ -13,9 +13,39 @@
 #include "ui/tokens/theme.h"
 
 void ShowButtons() {
+
+  // 1. No extra args
+  // Matches Master function. Uses defaults: Primary, Medium, {0,0}
+  ui::Button("Save");
+
+  // 2. Passing ImVec2
+  // Matches the Inline Overload. Redirects to Master with: Primary, Medium,
+  // {150,40}
+  ui::Button("Submit", ImVec2(150, 40));
+  ui::Button("Full Width", ImVec2(-1.0f, 40));
+
+  // 3. Passing Variant
+  // Matches Master function. Uses defaults for rest: Variant, Medium, {0,0}
   ui::Button("Primary", Primary);
   ImGui::SameLine();
   ui::Button("Secondary", Secondary);
+
+  // Get the available width of the window/container
+  float avail_width = ImGui::GetContentRegionAvail().x;
+
+  // Get the standard spacing ImGui uses between items (usually 8px)
+  float spacing = ImGui::GetStyle().ItemSpacing.x;
+
+  // Calculate half width: (Total - Spacing) / 2
+  float half_width = (avail_width - spacing) / 2.0f;
+
+  ui::Button("Test1", ImVec2(half_width, 30));
+  ImGui::SameLine();
+  ui::Button("Test2", ImVec2(half_width, 30));
+
+  // 4. Passing Variant + Size Category
+  // Matches Master function.
+  ui::Button("Delete", Danger, Small);
 }
 
 static void glfw_error_callback(int error, const char *description) {
