@@ -19,6 +19,7 @@
 // Custom UI Headers (Your component library)
 #include "ui/primitives/button.h"
 #include "ui/primitives/input.h"
+#include "ui/primitives/text.h"
 #include "ui/tokens/theme.h"
 
 // =====================================================
@@ -234,9 +235,13 @@ private:
     ui::Button("Delete", ui::ButtonVariant::Danger, ui::ButtonSize::Small);
 
     // --- TITLE ---
-    ImGui::SetWindowFontScale(1.5f);
-    ImGui::Text("User Registration");
-    ImGui::SetWindowFontScale(1.0f);
+    // 1. Title (Large Font)
+    ui::Text("User Registration", ui::TextStyle::Title);
+
+    // 2. Subtitle (Medium Font, Muted Color)
+    ui::Text("Please fill in the details below to create a new account.",
+             ui::TextStyle::Subtitle, ui::TextColor::Muted);
+
     ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
@@ -284,8 +289,9 @@ private:
     // --- FEEDBACK ---
     if (!vm.outputMessage.empty()) {
       ImGui::Spacing();
-      ImGui::TextColored(ImVec4(0.4f, 1.0f, 0.4f, 1.0f), "%s",
-                         vm.outputMessage.c_str());
+
+      // REPLACED: using the new component for success message
+      ui::Text(vm.outputMessage, ui::TextStyle::Body, ui::TextColor::Success);
     }
 
     ImGui::End();
