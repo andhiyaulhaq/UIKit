@@ -4,21 +4,19 @@
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+#include <stdio.h>
 
-// Include glad before GLFW
+// GLAD must be included BEFORE GLFW to initialize OpenGL function pointers
+// correctly
 #include <glad/gl.h>
 
 #include <GLFW/glfw3.h>
-
-#include <stdio.h>
-// #include <iostream>
-// #include <string>
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
 
-// Custom UI Headers (Preserved)
+// Custom UI Headers (Your component library)
 #include "ui/primitives/button.h"
 #include "ui/tokens/theme.h"
 
@@ -26,14 +24,13 @@
 // VIEWMODEL
 // =====================================================
 struct KitViewModel {
-  // The original code was stateless (just UI rendering),
-  // but we keep this struct to adhere to the requested architecture.
-  // If you add dynamic data (input fields, counters) later,
-  // their state would go here.
+  // This struct is intended to hold the application state (variables, flags,
+  // data). Keeping state separate from the rendering logic (KitApp) follows the
+  // MVVM pattern.
 };
 
 // =====================================================
-// APPLICATION CLASS (The Wrapper)
+// APPLICATION CLASS
 // =====================================================
 class KitApp {
 public:
@@ -42,6 +39,8 @@ public:
     initImGui();
   }
 
+  // Destructor: Handles the cleanup of ImGui, OpenGL, and GLFW resources
+  // ensuring no memory leaks when the app closes.
   ~KitApp() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -51,36 +50,20 @@ public:
     glfwTerminate();
   }
 
-  // Main Run Loop
+  // Main Application Loop
   void Run() {
     if (!window)
       return;
 
+    // Standard Game/App Loop
     while (!glfwWindowShouldClose(window)) {
+      // Poll and process events (keyboard, mouse, window resize, etc.)
       glfwPollEvents();
 
-      // Update Logic (None for this specific example)
-      // vm.update();
-
-      // Render
-      ImGui_ImplOpenGL3_NewFrame();
-      ImGui_ImplGlfw_NewFrame();
-      ImGui::NewFrame();
-
-      renderUI(); // Render the UI
-
-      ImGui::Render();
-
-      int w, h;
-      glfwGetFramebufferSize(window, &w, &h);
-      glViewport(0, 0, w, h);
-
-      // Matches original clear color
-      glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-      glClear(GL_COLOR_BUFFER_BIT);
-
-      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-      glfwSwapBuffers(window);
+      // We call Draw() explicitly here.
+      // This is separated into its own function so it can ALSO be called
+      // from the window_refresh_callback during resizing.
+      Draw();
     }
   }
 
@@ -88,9 +71,30 @@ private:
   GLFWwindow *window = nullptr;
   KitViewModel vm;
 
-  // Static error callback needed for GLFW
+  // Standard GLFW error handling
   static void glfw_error_callback(int error, const char *description) {
     fprintf(stderr, "GLFW Error %d: %s\n", error, description);
+  }
+
+  // ---------------------------------------------------------
+  // RESIZE HANDLING EXPLANATION:
+  // On Windows, the operating system blocks the main thread while the user
+  // is resizing or dragging the window (the modal loop). This pauses the
+  // 'Run()' loop above, causing the UI to freeze until the mouse is released.
+  //
+  // To fix this, we hook into the 'WindowRefreshCallback', which fires
+  // continuously *during* the resize event, allowing us to force a redraw.
+  // ---------------------------------------------------------
+  static void window_refresh_callback(GLFWwindow *window) {
+    // We cannot access non-static member functions (like app->Draw()) directly
+    // from a static C-style callback.
+    // We retrieve the "User Pointer" (which we stored in initWindow) to get
+    // the specific instance of our KitApp class.
+    KitApp *app = reinterpret_cast<KitApp *>(glfwGetWindowUserPointer(window));
+
+    if (app) {
+      app->Draw(); // Force a render frame immediately
+    }
   }
 
   void initWindow(int w, int h, const char *title) {
@@ -98,12 +102,9 @@ private:
     if (!glfwInit())
       return;
 
-    // No version hints were in original code, but standardizing on GL 3.0+ is
-    // safe If your original code relied on legacy GL, remove these hints.
+    // Set OpenGL version to 3.3 Core
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    // glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); //
-    // Optional depending on platform
 
     window = glfwCreateWindow(w, h, title, nullptr, nullptr);
     if (!window) {
@@ -112,11 +113,21 @@ private:
     }
 
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(1); // Enable VSync
+    glfwSwapInterval(1); // Enable V-Sync to prevent screen tearing
 
     if (!gladLoadGL(glfwGetProcAddress)) {
       fprintf(stderr, "Failed to initialize GLAD\n");
     }
+
+    // ---------------------------------------------------------
+    // LINKING C++ CLASS TO C CALLBACKS
+    // ---------------------------------------------------------
+    // 1. Store the 'this' pointer inside the GLFW window structure.
+    //    This allows us to retrieve the class instance in static callbacks.
+    glfwSetWindowUserPointer(window, this);
+
+    // 2. Register the refresh callback to handle smoother resizing on Windows.
+    glfwSetWindowRefreshCallback(window, window_refresh_callback);
   }
 
   void initImGui() {
@@ -125,85 +136,118 @@ private:
     ImGuiIO &io = ImGui::GetIO();
     (void)io;
 
-    // -- Load Custom Theme (Preserved feature) --
+    // Load custom fonts and colors
     ui::theme::LoadDefaultTheme();
-
     ImGui::StyleColorsDark();
 
+    // Initialize platform and renderer backends
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 130");
   }
 
-  // This contains the logic from the original ShowButtons() function
-  // This contains the logic from the original ShowButtons() function
+  // ---------------------------------------------------------
+  // THE RENDERING PIPELINE
+  // ---------------------------------------------------------
+  void Draw() {
+    // 1. Start the ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // 2. Define the UI layout (windows, buttons, text)
+    renderUI();
+
+    // 3. Finalize ImGui draw data
+    ImGui::Render();
+
+    // 4. Clear the OpenGL buffer (Background Color)
+    int w, h;
+    glfwGetFramebufferSize(window, &w, &h);
+    glViewport(0, 0, w, h);
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f); // Dark grey background
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // 5. Render ImGui draw data over the OpenGL background
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    // 6. Swap the back buffer to the front (display the frame)
+    glfwSwapBuffers(window);
+  }
+
+  // ---------------------------------------------------------
+  // UI LAYOUT DEFINITION
+  // ---------------------------------------------------------
   void renderUI() {
-    // 1. Setup the window to fill the entire viewport
+    // To make the UI "Responsive" and fill the whole window like a web app:
+    // We grab the main viewport (the OS window dimensions).
     const ImGuiViewport *viewport = ImGui::GetMainViewport();
+
+    // Force the ImGui window to match the position and size of the OS window.
     ImGui::SetNextWindowPos(viewport->Pos);
     ImGui::SetNextWindowSize(viewport->Size);
 
-    // 2. Add flags to remove decorations (title bar, resize handle) and
-    // movement
+    // Configure flags to remove standard window chrome:
+    // - NoDecoration: Hides Title bar, close button, collapse button.
+    // - NoMove: User cannot drag the window contents (it's fixed to the frame).
+    // - NoResize: User cannot resize the internal ImGui window (it matches OS
+    // window).
     ImGuiWindowFlags window_flags =
         ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoMove |
         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoSavedSettings |
         ImGuiWindowFlags_NoBringToFrontOnFocus;
 
-    // Optional: Remove window rounding to ensure it fits the corners perfectly
+    // Remove window rounding so the UI fits perfectly into the corners.
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
 
-    // 3. Begin the window with the flags
     ImGui::Begin("Minimal Example", nullptr, window_flags);
 
-    // --- Content (Buttons) ---
+    // --- Content Rendering ---
 
-    // 1. No extra args
+    // Example 1: Standard Button
     ui::Button("Save");
 
-    // 2. Passing ImVec2
+    // Example 2: Sized Buttons
     ui::Button("Submit", ImVec2(150, 40));
-    ui::Button("Full Width", ImVec2(-1.0f, 40));
+    ui::Button("Full Width",
+               ImVec2(-1.0f, 40)); // -1.0f width means "Span available width"
 
-    // 3. Passing Variant
+    // Example 3: Themed Buttons (Primary/Secondary)
     ui::Button("Primary", Primary);
-    ImGui::SameLine();
+    ImGui::SameLine(); // Places the next element on the same horizontal line
     ui::Button("Secondary", Secondary);
 
-    // Get the available width of the window/container
+    // Example 4: Responsive Grid Calculation
     float avail_width = ImGui::GetContentRegionAvail().x;
     float spacing = ImGui::GetStyle().ItemSpacing.x;
+    // Calculate 50% width minus half the spacing for a perfect 2-column split
     float half_width = (avail_width - spacing) / 2.0f;
 
     ui::Button("Test1", ImVec2(half_width, 30));
     ImGui::SameLine();
     ui::Button("Test2", ImVec2(half_width, 30));
 
-    // 4. Passing Variant + Size Category
+    // Example 5: Variant + Size
     ui::Button("Delete", Danger, Small);
 
     ImGui::End();
 
-    // Pop the style var we pushed earlier
+    // Always pop style variables to avoid affecting other windows/frames
     ImGui::PopStyleVar();
   }
 };
 
-// =====================================================
-// ENTRY POINT
-// =====================================================
-
 int main(int argc, char **argv) {
-  // 1. Create App
+  // Initialize the App
   KitApp app(800, 600, "UI Kit - Minimal");
 
-  // 2. Run App
+  // Enter the infinite loop
   app.Run();
 
-  // 3. Cleanup happens automatically when 'app' goes out of scope
   return 0;
 }
 
 #ifdef _WIN32
+// Standard Windows entry point
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
   return main(__argc, __argv);
 }
