@@ -14,6 +14,7 @@ struct ButtonStyle {
   ImVec4 text;
   float radius;
   ImVec2 padding;
+  ImFont *font;
 };
 
 namespace theme {

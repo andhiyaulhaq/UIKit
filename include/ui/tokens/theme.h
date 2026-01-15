@@ -13,5 +13,6 @@ extern Theme current_theme;
 
 // lifecycle
 void LoadDefaultTheme();
+void LoadFonts();
 
 } // namespace ui::theme

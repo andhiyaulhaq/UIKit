@@ -2,6 +2,7 @@
 #include "button.h"
 #include "../tokens/base/colors.h"
 #include "../tokens/base/radius.h"
+#include "../tokens/base/typography.h"
 #include "../tokens/theme.h"
 #include <imgui.h>
 
@@ -9,6 +10,7 @@ namespace ui {
 
 static bool DrawButton(const char *label, const ButtonStyle &s,
                        ImVec2 override_size) {
+  ImGui::PushFont(s.font);
   ImGui::PushStyleColor(ImGuiCol_Button, s.bg);
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered, s.bg_hover);
   ImGui::PushStyleColor(ImGuiCol_ButtonActive, s.bg_active);
@@ -27,6 +29,7 @@ static bool DrawButton(const char *label, const ButtonStyle &s,
 
   ImGui::PopStyleVar(2);
   ImGui::PopStyleColor(4);
+  ImGui::PopFont();
 
   return clicked;
 }
@@ -60,10 +63,25 @@ ButtonStyle GetButtonStyle(ButtonVariant variant, ButtonSize size) {
   // Calculate padding based on the size category
   ImVec2 padding = GetPadding(size, current_theme.scale);
 
+  // Set font based on size
+  ImFont *font = nullptr;
+  switch (size) {
+  case ButtonSize::Small:
+    font = font_small;
+    break;
+  case ButtonSize::Medium:
+    font = font_medium;
+    break;
+  case ButtonSize::Large:
+    font = font_large;
+    break;
+  }
+
   // Define colors (logic remains mostly the same, just adding .padding)
   ButtonStyle style = {};
   style.radius = scaled_radius;
   style.padding = padding;
+  style.font = font;
 
   switch (variant) {
   case ButtonVariant::Primary:

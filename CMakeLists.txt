@@ -52,11 +52,11 @@ target_link_libraries(imgui PUBLIC
 )
 
 # =========================
-# UI Kit library (header-only for now)
+# UI Kit library
 # =========================
 add_library(ui_kit
     include/ui/primitives/button.cpp
-		include/ui/primitives/input.cpp
+    include/ui/primitives/input.cpp
     include/ui/tokens/theme.cpp
     # later:
     # include/ui/patterns/toolbar.cpp
@@ -68,6 +68,23 @@ target_include_directories(ui_kit PUBLIC
 
 target_link_libraries(ui_kit PUBLIC
     imgui
+)
+
+# =========================
+# ASSET COPYING AUTOMATION
+# =========================
+# 1. Define where your assets live in the source code
+set(ASSETS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/assets")
+
+# 2. Define where they should go (into the build directory root)
+set(ASSETS_DEST_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets")
+
+# 3. Copy the folder automatically after ui_kit is built
+add_custom_command(TARGET ui_kit POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${ASSETS_SOURCE_DIR}
+    ${ASSETS_DEST_DIR}
+    COMMENT "Copying assets to build directory..."
 )
 
 # =========================
